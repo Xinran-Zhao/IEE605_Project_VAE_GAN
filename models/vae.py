@@ -237,6 +237,10 @@ class VAE(nn.Module):
         Returns:
             Tuple of (total_loss, loss_dict)
         """
+        # Clamp reconstructions to valid range for BCE loss
+        recon_x = torch.clamp(recon_x, 1e-6, 1 - 1e-6)
+        x = torch.clamp(x, 0, 1)
+        
         # Reconstruction loss (binary cross entropy)
         recon_loss = F.binary_cross_entropy(recon_x, x, reduction='sum')
         

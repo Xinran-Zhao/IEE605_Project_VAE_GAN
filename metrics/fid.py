@@ -98,8 +98,8 @@ class InceptionFeatureExtractor(nn.Module):
         Returns:
             Feature vectors of shape (B, feature_dim)
         """
-        # Normalize to [-1, 1] if not already
-        if x.min() >= 0:
+        # Normalize to [-1, 1] if not already (assumes input in [0, 1])
+        if x.min() >= 0 and x.max() <= 1:
             x = 2 * x - 1
         
         # Expand grayscale to RGB if needed

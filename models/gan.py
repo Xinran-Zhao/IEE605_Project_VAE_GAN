@@ -8,6 +8,7 @@ This module implements a Deep Convolutional GAN (DCGAN) with:
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from typing import Tuple
 
 
@@ -201,8 +202,6 @@ def gan_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
     Returns:
         Tuple of (discriminator_loss, generator_loss)
     """
-    criterion = nn.BCELoss()
-    
     batch_size = d_real.size(0)
     device = d_real.device
     
@@ -210,13 +209,13 @@ def gan_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
     real_labels = torch.full((batch_size, 1), real_label, device=device)
     fake_labels = torch.full((batch_size, 1), fake_label, device=device)
     
-    # Discriminator loss
-    d_loss_real = criterion(d_real, real_labels)
-    d_loss_fake = criterion(d_fake, fake_labels)
+    # Discriminator loss using functional form
+    d_loss_real = F.binary_cross_entropy(d_real, real_labels)
+    d_loss_fake = F.binary_cross_entropy(d_fake, fake_labels)
     d_loss = d_loss_real + d_loss_fake
     
     # Generator loss (wants discriminator to think fakes are real)
-    g_loss = criterion(d_fake, real_labels)
+    g_loss = F.binary_cross_entropy(d_fake, real_labels)
     
     return d_loss, g_loss
 

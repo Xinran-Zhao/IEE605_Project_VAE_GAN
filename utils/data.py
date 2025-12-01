@@ -32,17 +32,11 @@ def get_data_loader(dataset_name: str = 'mnist',
     """
     dataset_name = dataset_name.lower()
     
-    # Define transforms
-    if dataset_name in ['mnist', 'fashion_mnist']:
-        transform = transforms.Compose([
-            transforms.Resize(image_size),
-            transforms.ToTensor(),
-        ])
-    else:
-        transform = transforms.Compose([
-            transforms.Resize(image_size),
-            transforms.ToTensor(),
-        ])
+    # Define transforms (common for all datasets)
+    transform = transforms.Compose([
+        transforms.Resize(image_size),
+        transforms.ToTensor(),  # Converts to [0, 1] range
+    ])
     
     # Load dataset
     if dataset_name == 'mnist':

@@ -34,7 +34,7 @@ def train_epoch(generator, discriminator, train_loader,
         real_images = real_images.to(device)
         batch_size = real_images.size(0)
         
-        # Normalize real images to [-1, 1] for GAN
+        # Normalize real images from [0, 1] to [-1, 1] for GAN (Tanh output)
         real_images = 2 * real_images - 1
         
         # Train Discriminator

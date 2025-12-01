@@ -43,11 +43,14 @@ def compute_elbo(recon_x: torch.Tensor, x: torch.Tensor,
     recon_x_flat = recon_x.view(batch_size, -1)
     x_flat = x.view(batch_size, -1)
     
+    # Clamp for numerical stability instead of adding epsilon
+    recon_x_flat = torch.clamp(recon_x_flat, 1e-8, 1 - 1e-8)
+    
     # Reconstruction term: log p(x|z)
     # Using Bernoulli likelihood for binary data
     recon_term = torch.sum(
-        x_flat * torch.log(recon_x_flat + 1e-8) + 
-        (1 - x_flat) * torch.log(1 - recon_x_flat + 1e-8),
+        x_flat * torch.log(recon_x_flat) + 
+        (1 - x_flat) * torch.log(1 - recon_x_flat),
         dim=1
     )
     
