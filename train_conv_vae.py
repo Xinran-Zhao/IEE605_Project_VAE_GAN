@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from torch.optim import Adam
 from models.ConvVAE import ConvVAE, loss_function
 from data.cifar_10 import get_cifar10_loaders, StandardNormalization
+from evaluation.metrics import evaluate_bpd
 import os
 
 # Set random seeds for reproducibility
@@ -20,7 +21,7 @@ inverse_norm = StandardNormalization().inverse
 # Hyperparameters
 batch_size = 128
 learning_rate = 1e-3
-epochs = 50
+epochs = 20
 latent_dim = 256
 
 # KLD weight annealing (CRITICAL for good results!)
@@ -296,15 +297,29 @@ if __name__ == "__main__":
     import os
     os.makedirs('progress', exist_ok=True)
     
+    # prepare model
     model = ConvVAE(latent_dim=latent_dim, device=device).to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999))
     
+    # train
     train_losses, val_losses, recon_losses, kld_losses = train(model, optimizer, epochs, device, save_interval=5)
+    plot_losses(train_losses, val_losses, recon_losses, kld_losses)
     
+    # test
     print("\nEvaluating on test set...")
     test_loss = test(model, device)
     
-    plot_losses(train_losses, val_losses, recon_losses, kld_losses)
+    print("\nEvaluating BPD metric on test set...")
+    bpd_score = evaluate_bpd(
+        model=model,
+        test_loader=test_loader,
+        loss_function=loss_function,
+        device=device,
+        kld_weight=1.0,
+        image_channels=3,
+        image_size=32,
+        apply_bitdepth_correction=True
+    )
     
     print("\nGenerating samples from latent space...")
     generate_samples(model, device)
@@ -321,9 +336,15 @@ if __name__ == "__main__":
         'recon_losses': recon_losses,
         'kld_losses': kld_losses,
         'test_loss': test_loss,
+        'bpd_score': bpd_score,
         'latent_dim': latent_dim,
     }, model_path)
     print(f"\nModel saved as '{model_path}'")
     
-    print(f"  Training Loss: {train_losses[-1]:.6f}")
+    print(f"\n{'='*60}")
+    print(f"Final Results Summary")
+    print(f"{'='*60}")
+    print(f"  Training Loss (final epoch): {train_losses[-1]:.6f}")
     print(f"  Test Loss: {test_loss:.6f}")
+    print(f"  BPD (Bits Per Dimension): {bpd_score:.6f}")
+    print(f"{'='*60}")

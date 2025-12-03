@@ -143,72 +143,6 @@ def get_cifar10_loaders(batch_size=128, data_path='~/datasets',
     
     return train_loader, val_loader, test_loader
 
-
-def get_augmented_cifar10_loaders(batch_size=128, data_path='~/datasets', 
-                                   num_workers=0):
-    """
-    Get CIFAR-10 data loaders with data augmentation for training
-    
-    Args:
-        batch_size (int): Batch size for data loaders
-        data_path (str): Path to store/load the dataset
-        num_workers (int): Number of worker processes for data loading
-    
-    Returns:
-        train_loader: DataLoader for training set (with augmentation)
-        test_loader: DataLoader for test set (without augmentation)
-    """
-    train_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ToTensor(),
-    ])
-    
-    test_transform = transforms.Compose([
-        transforms.ToTensor(),
-    ])
-    
-    train_dataset = CIFAR10(
-        root=data_path,
-        train=True,
-        transform=train_transform,
-        download=True
-    )
-    
-    test_dataset = CIFAR10(
-        root=data_path,
-        train=False,
-        transform=test_transform,
-        download=True
-    )
-    
-    train_loader = DataLoader(
-        dataset=train_dataset,
-        batch_size=batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        drop_last=False,
-        pin_memory=torch.cuda.is_available()
-    )
-    
-    test_loader = DataLoader(
-        dataset=test_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=num_workers,
-        drop_last=False,
-        pin_memory=torch.cuda.is_available()
-    )
-    
-    print(f"CIFAR-10 Dataset Loaded with Augmentation:")
-    print(f"  Training samples: {len(train_dataset)}")
-    print(f"  Test samples: {len(test_dataset)}")
-    print(f"  Batch size: {batch_size}")
-    print(f"  Augmentation: RandomHorizontalFlip, RandomCrop")
-    
-    return train_loader, test_loader
-
-
 # CIFAR-10 class names for reference
 CIFAR10_CLASSES = [
     'airplane', 'automobile', 'bird', 'cat', 'deer',
@@ -217,7 +151,7 @@ CIFAR10_CLASSES = [
 
 
 if __name__ == "__main__":
-    print("Testing CIFAR-10 data loading...")
+    print("CIFAR-10 data loading...")
     train_loader, test_loader = get_cifar10_loaders(batch_size=128)
     
     images, labels = next(iter(train_loader))
