@@ -17,7 +17,7 @@ lr_g = 2e-4
 lr_d = 2e-4
 epochs = 20
 latent_dim = 256
-save_interval = 1
+save_interval = 5
 
 import torchvision.transforms as transforms
 from torchvision.datasets import CIFAR10
@@ -115,3 +115,16 @@ if __name__ == "__main__":
     print(f"Training: {len(train_loader)} batches per epoch\n")
     
     g_losses, d_losses = train(G, D, g_optimizer, d_optimizer, criterion, epochs, device)
+    
+    # Save the trained model
+    os.makedirs('models', exist_ok=True)
+    checkpoint = {
+        'generator': G.state_dict(),
+        'discriminator': D.state_dict(),
+        'g_optimizer': g_optimizer.state_dict(),
+        'd_optimizer': d_optimizer.state_dict(),
+        'latent_dim': latent_dim,
+        'epochs': epochs
+    }
+    torch.save(checkpoint, 'models/gan_checkpoint.pt')
+    print(f"\nModel saved to models/gan_checkpoint.pt")
