@@ -82,6 +82,7 @@ class ConvVAE(nn.Module):
 
 def loss_function(x, x_recon, mu, logvar, kld_weight=0.00025):
     recon_loss = F.mse_loss(x_recon, x, reduction='mean')
-    kld_loss = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+    kld_per_sample = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
+    kld_loss = torch.mean(kld_per_sample)
     loss = recon_loss + kld_weight * kld_loss
     return loss, recon_loss, kld_loss
