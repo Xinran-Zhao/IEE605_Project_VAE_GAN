@@ -120,8 +120,7 @@ def plot_tradeoff_curve(results):
                     xy=(rates[i], distortions[i]),
                     xytext=(10, -10), 
                     textcoords='offset points',
-                    fontsize=11,
-                    bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', alpha=0.6))
+                    fontsize=11)
     
     plt.xlabel('Rate (KL Divergence in bits)', fontsize=14, fontweight='bold')
     plt.ylabel('Distortion (MSE)', fontsize=14, fontweight='bold')
@@ -133,7 +132,9 @@ def plot_tradeoff_curve(results):
     plt.close()
 
 
-def main():
+if __name__ == "__main__":
+    # ------------------------------------------------------------
+    # Case1: train the models from scratch
     os.makedirs('tradeoff_models', exist_ok=True)
     os.makedirs('tradeoff_samples', exist_ok=True)
     
@@ -145,17 +146,15 @@ def main():
     with open('tradeoff_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     print("\nSaved results to tradeoff_results.json")
-    
+    # ------------------------------------------------------------
+    # # Case2: already have the results, need to replot the tradeoff curve
+    # with open('tradeoff_results.json', 'r') as f:
+    #     results = json.load(f)
+    # ------------------------------------------------------------
     plot_tradeoff_curve(results)
-    
     print("\n" + "="*70)
     print("Rate-Distortion Analysis Complete")
     print("="*70)
     for r in results:
         print(f"β={r['beta']:>4.1f} | Rate={r['rate']:>8.4f} bits | Distortion={r['distortion']:>10.6f}")
     print("="*70)
-
-
-if __name__ == "__main__":
-    main()
-
