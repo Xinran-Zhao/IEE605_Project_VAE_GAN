@@ -13,18 +13,17 @@ def compute_rate_distortion(model, test_loader, device):
             x = x.to(device)
             x_recon, mu, logvar = model(x)
             
-            kld_per_sample = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
-            kld_batch = torch.sum(kld_per_sample)
+            kld = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
             mse = torch.sum((x - x_recon) ** 2)
             
-            total_kld += kld_batch.item()
+            total_kld += kld.item()
             total_mse += mse.item()
             num_samples += x.size(0)
     
-    avg_kld_nats = total_kld / num_samples
+    avg_kld = total_kld / num_samples
     avg_mse = total_mse / (num_samples * x.size(1) * x.size(2) * x.size(3))
     
-    rate_bits = avg_kld_nats / np.log(2.0)
+    rate_bits = avg_kld / np.log(2.0)
     distortion = avg_mse
     
     return rate_bits, distortion
