@@ -13,6 +13,9 @@ from torch.utils.data import DataLoader
 
 def evaluate_bpd(model, test_loader, loss_function, device, kld_weight=1.0, 
                  image_channels=3, image_size=32, apply_bitdepth_correction=True):
+    """
+    Evaluate the bits per dimension (BPD) of the VAE model
+    """
     model.eval()
     total_nll = 0
     num_samples = 0
@@ -50,6 +53,68 @@ def evaluate_bpd(model, test_loader, loss_function, device, kld_weight=1.0,
     print(f"Note: This BPD is an UPPER BOUND on the true NLL for VAE models.")
     
     return bpd
+
+
+def evaluate_bpd_flow(model, data_loader, device, image_channels=3, image_size=32, 
+                      apply_bitdepth_correction=True):
+    """
+    Evaluate Bits per Dimension for Flow models (exact NLL)
+    """
+    model.eval()
+    total_nll = 0.0
+    num_samples = 0
+    
+    D = image_channels * image_size * image_size  # Total dimensions per image
+    
+    print("Evaluating Flow model on dataset...")
+    with torch.no_grad():
+        for batch_idx, (x, _) in enumerate(data_loader):
+            x = x.to(device)
+            current_batch_size = x.size(0)
+            
+            # Get log probability from flow model
+            log_px = model.log_prob(x)  # Shape: (batch_size,)
+            
+            # Negative log-likelihood
+            nll = -log_px
+            
+            total_nll += nll.sum().item()
+            num_samples += current_batch_size
+            
+            if (batch_idx + 1) % 20 == 0:
+                print(f"  Processed {num_samples} samples...")
+    
+    # Calculate average NLL and BPD
+    avg_nll = total_nll / num_samples
+    bpd_raw = avg_nll / (D * np.log(2.0))
+    
+    # Apply bit-depth correction for dequantized models
+    if apply_bitdepth_correction:
+        bitdepth_correction = 8.0  # log2(256) for 8-bit images
+        bpd = bpd_raw + bitdepth_correction
+    else:
+        bpd = bpd_raw
+    
+    # Print results
+    print(f"\n{'='*60}")
+    print(f"BPD Evaluation - Flow Model")
+    print(f"{'='*60}")
+    print(f"Dataset samples: {num_samples}")
+    print(f"Image dimensions: {image_channels} × {image_size} × {image_size} = {D}")
+    print(f"Average NLL (nats/image): {avg_nll:.4f}")
+    print(f"BPD (before correction): {bpd_raw:.4f}")
+    if apply_bitdepth_correction:
+        print(f"Bit-depth correction: +{bitdepth_correction:.4f}")
+        print(f"Final BPD: {bpd:.4f}")
+    else:
+        print(f"Final BPD: {bpd:.4f}")
+    print(f"{'='*60}\n")
+    print(f"Note: For Flow models, this is the EXACT negative log-likelihood,")
+    print(f"      not an upper bound like VAE's ELBO.")
+    if apply_bitdepth_correction:
+        print(f"      Bit-depth correction accounts for dequantization (log2(256) = 8).")
+    
+    return bpd, avg_nll
 
 
 class InceptionV3FeatureExtractor(nn.Module):
