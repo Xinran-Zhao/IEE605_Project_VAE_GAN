@@ -1,0 +1,13 @@
+# Ignore all subdirectories in fidelity_diversity_gan folder
+# Since they are thousands of images, we don't need to keep them in the repository
+fidelity_diversity_gan/*/
+
+# Ignore VAE generated samples (5000 images)
+vae_fid_kid_eval/generated_samples/
+
+# Ignore RealNVP Flow generated samples (5000 images)
+flow_fid_kid_eval/generated_samples/
+
+# Ignore VAE tradeoff samples
+vae_tradeoff_samples/
+
